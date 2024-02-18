@@ -3,9 +3,18 @@ const BLOG_CATEGORY = require("../types/blogCategory");
 
 const blogSchema = new mongoose.Schema(
   {
-    title: String,
-    author: String,
-    content: String,
+    title: {
+      type: String,
+      required: [true, "Please Enter The Title"],
+      maxLength: [100, "Title Cannot be this much long"],
+      minLength: [2, "It need to have at-least 2 characters"],
+    },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    content: {
+      type: String,
+      required: [true, "Please Enter The Content"],
+      minLength: [2, "It need to have at-least 2 characters"],
+    },
     categories: {
       type: String,
       enum: [

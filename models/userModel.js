@@ -35,19 +35,22 @@ const userSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: "",
+      default:
+        "https://png.pngtree.com/png-clipart/20210129/ourmid/pngtree-default-male-avatar-png-image_2811083.jpg",
     },
     phone: {
       type: Number,
-      required: true,
+      required: [true, "Please Enter Phone Number"],
     },
     gender: {
       type: String,
       enum: [USER_GENDER.MALE, USER_GENDER.FEMALE, USER_GENDER.OTHER],
+      default: "male",
     },
     role: {
       type: String,
       enum: [USER_ROLE.ADMIN, USER_ROLE.LANDLORD, USER_ROLE.TENANT],
+      default: "tenant",
     },
     companyName: String,
     companyWebsite: String,
@@ -80,10 +83,7 @@ userSchema.methods.comparePassword = async function (password) {
 //password reset token
 userSchema.methods.getResetPasswordToken = async function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
-  this.resetPasswordToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
+  this.resetPasswordToken = resetToken;
   this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
   return resetToken;
 };

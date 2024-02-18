@@ -1,3 +1,5 @@
+const path = require("path");
+
 const ErrorHandler = require("../utils/errorHandler");
 
 const User = require("../models/userModel");
@@ -10,19 +12,81 @@ const crypto = require("crypto");
 
 const renderEmailTemplate = require("../utils/emailTemplate");
 
+const generateOTP = require("../utils/otpGenerator");
+
 //register
 
 const registerUser = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
+
     const emailAlreadyPresent = await User.findOne({ email });
+
     if (emailAlreadyPresent) {
       return next(new ErrorHandler("Email Already Exists", 409));
     }
+
+    const otp = generateOTP();
+
+    const otpData = {
+      otp: otp,
+    };
+
+    const templatePath = path.join(
+      __dirname,
+      "..",
+      "public",
+      "views",
+      "templates",
+      "otpTemplate.html"
+    );
+
+    const emailContent = renderEmailTemplate(templatePath, otpData);
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Victor Harris OTP",
+        html: emailContent,
+      });
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return next(new ErrorHandler(error.message, 500));
+    }
+
+    req.session.user = {
+      firstName,
+      lastName,
+      email,
+      password,
+      otp,
+    };
+
+    res.status(200).json({ message: "OTP sent to your email, please verify" });
+
     const user = await User.create({
       ...req.body,
     });
+
     sendToken(user, 201, res);
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+};
+
+const verifyOTP = async (req, res, next) => {
+  try {
+    const { otp } = req.body;
+    const { user } = req.session;
+
+    if (user && otp === user.otp) {
+      const newUser = await User.create(user);
+      sendToken(newUser, 201, res);
+    } else {
+      return next(new ErrorHandler("Invalid OTP", 400));
+    }
   } catch (error) {
     return next(new ErrorHandler(error.message, 400));
   }
@@ -50,22 +114,6 @@ const loginUser = async (req, res, next) => {
     sendToken(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error, 404));
-  }
-};
-
-//logout
-const logout = async (req, res, next) => {
-  try {
-    res.cookie("token", null, {
-      expires: new Date(Date.now()),
-      httpOnly: true,
-    });
-    res.status(200).json({
-      success: true,
-      message: "Logged Out",
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
   }
 };
 
@@ -176,7 +224,6 @@ const forgotPassword = async (req, res, next) => {
       resetPasswordUrl: resetPasswordUrl,
     };
 
-    const path = require("path");
     const templatePath = path.join(
       __dirname,
       "..",
@@ -212,10 +259,7 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const resetPasswordToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const resetPasswordToken = req.params.token;
 
     const user = await User.findOne({
       resetPasswordToken,
@@ -247,6 +291,13 @@ const updateProfile = async (req, res, next) => {
       lastName: req.body.lastName,
       email: req.body.email,
     };
+
+    const profile =
+      req.files?.profilePhotoUrl?.length > 0
+        ? `/${req.files?.profilePhotoUrl[0]?.filename}`
+        : "";
+
+    req.body.image = profile;
 
     await User.findByIdAndUpdate(req.user.id, newUserData, {
       new: true,
@@ -289,7 +340,7 @@ const updatePassword = async (req, res, next) => {
 module.exports = {
   registerUser,
   loginUser,
-  logout,
+  verifyOTP,
   getUserDetails,
   getAllUsers,
   getSingleUser,
