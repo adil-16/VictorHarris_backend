@@ -12,13 +12,16 @@ const crypto = require("crypto");
 
 const renderEmailTemplate = require("../utils/emailTemplate");
 
-const generateOTP = require("../utils/otpGenerator");
+const { generateOTP } = require("../utils/otpGenerator");
 
+const NodeCache = require("node-cache");
+
+const nodeCache = new NodeCache();
 //register
 
 const registerUser = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, phone } = req.body;
 
     const emailAlreadyPresent = await User.findOne({ email });
 
@@ -45,14 +48,12 @@ const registerUser = async (req, res, next) => {
 
     try {
       await sendEmail({
-        email: user.email,
+        email: email,
         subject: "Victor Harris OTP",
         html: emailContent,
       });
     } catch (error) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save({ validateBeforeSave: false });
+      console.log(error);
       return next(new ErrorHandler(error.message, 500));
     }
 
@@ -61,17 +62,13 @@ const registerUser = async (req, res, next) => {
       lastName,
       email,
       password,
+      phone,
       otp,
     };
 
     res.status(200).json({ message: "OTP sent to your email, please verify" });
-
-    const user = await User.create({
-      ...req.body,
-    });
-
-    sendToken(user, 201, res);
   } catch (error) {
+    console.log(error);
     return next(new ErrorHandler(error.message, 400));
   }
 };
@@ -80,9 +77,14 @@ const verifyOTP = async (req, res, next) => {
   try {
     const { otp } = req.body;
     const { user } = req.session;
+    console.log(otp);
+    console.log(user);
 
     if (user && otp === user.otp) {
       const newUser = await User.create(user);
+      nodeCache.del("profile");
+      nodeCache.del("users");
+      nodeCache.del("user");
       sendToken(newUser, 201, res);
     } else {
       return next(new ErrorHandler("Invalid OTP", 400));
@@ -110,7 +112,9 @@ const loginUser = async (req, res, next) => {
     if (!isPasswordMatched) {
       return next(new ErrorHandler("Invalid Email or Password", 401));
     }
-
+    nodeCache.del("profile");
+    nodeCache.del("users");
+    nodeCache.del("user");
     sendToken(user, 200, res);
   } catch (error) {
     return next(new ErrorHandler(error, 404));
@@ -120,7 +124,14 @@ const loginUser = async (req, res, next) => {
 //for oneself
 const getUserDetails = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    let user;
+    if (nodeCache.has("profile")) {
+      user = JSON.parse(nodeCache.get("profile"));
+    } else {
+      user = await User.findById(req.user.id);
+      nodeCache.set("profile", JSON.stringify(user));
+    }
+
     res.status(200).json({
       success: true,
       user,
@@ -133,7 +144,14 @@ const getUserDetails = async (req, res, next) => {
 //get all users (for admin)
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
+    let users;
+    if (nodeCache.has("users")) {
+      users = JSON.parse(nodeCache.get("users"));
+    } else {
+      users = await User.find({ role: { $ne: "admin" } });
+      nodeCache.set("users", JSON.stringify(users));
+    }
+
     res.status(200).json({
       success: true,
       users,
@@ -146,7 +164,13 @@ const getAllUsers = async (req, res, next) => {
 //get a single user (for admin)
 const getSingleUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    let user;
+    if (nodeCache.has("user")) {
+      user = JSON.parse(nodeCache.get("user"));
+    } else {
+      user = await User.findById(req.params.id);
+      nodeCache.set("user", JSON.stringify(user));
+    }
     if (!user) {
       return next(
         new ErrorHandler(`User Doesn't Exist with Id: ${req.params.id}`, 404)
@@ -173,8 +197,6 @@ const updateUserRole = async (req, res, next) => {
       new: true,
       runValidators: true,
     });
-
-    console.log(user);
 
     if (!user) {
       return next(new ErrorHandler("User Does not Exist with this id ", 404));
@@ -236,14 +258,14 @@ const forgotPassword = async (req, res, next) => {
 
     try {
       await sendEmail({
-        email: user.email,
+        email: req.body.email,
         subject: "Victor Harris Password Recovery",
         html: emailContent,
       });
 
       res.status(200).json({
         success: true,
-        message: `Email Sent to ${user.email}`,
+        message: `Email Sent to ${req.body.email}`,
       });
     } catch (error) {
       user.resetPasswordToken = undefined;
@@ -289,21 +311,25 @@ const updateProfile = async (req, res, next) => {
     const newUserData = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
-      email: req.body.email,
+      phone: req.body.phone,
     };
 
-    const profile =
-      req.files?.profilePhotoUrl?.length > 0
-        ? `/${req.files?.profilePhotoUrl[0]?.filename}`
-        : "";
+    // const profile =
+    //   req.files?.profilePhotoUrl?.length > 0
+    //     ? `/${req.files?.profilePhotoUrl[0]?.filename}`
+    //     : "";
 
-    req.body.image = profile;
+    // req.body.image = profile;
 
     await User.findByIdAndUpdate(req.user.id, newUserData, {
       new: true,
       runValidators: true,
       useFindAndModify: false,
     });
+
+    nodeCache.del("users");
+    nodeCache.del("user");
+    nodeCache.del("profile");
 
     res.status(200).json({
       success: true,

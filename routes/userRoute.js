@@ -22,14 +22,8 @@ router.post("/otp", verifyOTP);
 router.post("/login", loginUser);
 router.post("/password/forgot", forgotPassword);
 router.put("/password/reset/:token", resetPassword);
-router.get("/logout", logout);
-router.get("/me", isAuthenticatedUser, getUserDetails);
-router.put(
-  "/me/update",
-  isAuthenticatedUser,
-  upload.fields([{ name: "image", maxCount: 1 }]),
-  updateProfile
-);
+router.get("/profile", isAuthenticatedUser, getUserDetails);
+router.put("/profile/update", isAuthenticatedUser, updateProfile);
 router.put("/password/update", isAuthenticatedUser, updatePassword);
 router.get(
   "/admin/users",

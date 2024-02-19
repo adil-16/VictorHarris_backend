@@ -52,6 +52,7 @@ const userSchema = new mongoose.Schema(
       enum: [USER_ROLE.ADMIN, USER_ROLE.LANDLORD, USER_ROLE.TENANT],
       default: "tenant",
     },
+    otp: String,
     companyName: String,
     companyWebsite: String,
     jobTitle: String,
