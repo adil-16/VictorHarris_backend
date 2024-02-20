@@ -23,15 +23,14 @@ const blogSchema = new mongoose.Schema(
         BLOG_CATEGORY.HYBRID_WORKING,
         BLOG_CATEGORY.OFFICE_TRENDS,
       ],
+      default: BLOG_CATEGORY.TYPES_OF_OFFICES,
     },
     tags: [String],
-    date: {
-      type: Date,
-      default: Date.now,
-    },
     image: [
       {
         type: String,
+        default:
+          "https://www.useourfacilities.com/css/images/no-image-template.png",
       },
     ],
     video: [

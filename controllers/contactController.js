@@ -7,6 +7,7 @@ const postContact = async (req, res, next) => {
     await ContactUs.create(req.body);
     res.status(200).json({
       success: true,
+      message: "You will get a response shortly",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
@@ -17,9 +18,15 @@ const getSingleContact = async (req, res, next) => {
   try {
     const { id } = req.params;
     const contact = await ContactUs.findById(id);
-    res.status(200).json({
-      success: true,
-      contact,
+    if (contact) {
+      res.status(200).json({
+        success: true,
+        contact,
+      });
+    }
+    res.status(404).json({
+      success: false,
+      message: "Contact Not Found",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
@@ -44,6 +51,7 @@ const deleteContact = async (req, res, next) => {
     const contact = await ContactUs.findByIdAndDelete(id);
     res.status(200).json({
       success: true,
+      message: "contact deleted successfully",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));

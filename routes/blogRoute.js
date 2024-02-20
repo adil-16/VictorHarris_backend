@@ -9,21 +9,26 @@ const {
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
 const router = express.Router();
 
-router.get("/blogs", getBlogs);
+router.get("/all-blogs", getBlogs);
 
-router.get("/blog/:id", getSingleBlog);
+router.get("/single-blog/:id", getSingleBlog);
 
-router.post("/blog", isAuthenticatedUser, authorizeRoles("admin"), postBlog);
+router.post(
+  "/add-blog",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  postBlog
+);
 
 router.delete(
-  "/blog/:id",
+  "/single-blog/:id",
   isAuthenticatedUser,
   authorizeRoles("admin"),
   deleteBlog
 );
 
 router.put(
-  "/blog/:id",
+  "/single-blog/:id",
   isAuthenticatedUser,
   authorizeRoles("admin"),
   updateBlog

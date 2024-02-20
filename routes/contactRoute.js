@@ -1,31 +1,36 @@
 const express = require("express");
-const {} = require("../controllers/contactController");
+const {
+  postContact,
+  getSingleContact,
+  getAllContacts,
+  deleteContact,
+} = require("../controllers/contactController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.post("/contact", postContact);
+router.post("/add-contact", postContact);
 
 router.get(
-  "/contact",
+  "/all-contacts",
   isAuthenticatedUser,
   authorizeRoles("admin"),
   getAllContacts
 );
 
 router.get(
-  "/contact/:id",
+  "/single-contact/:id",
   isAuthenticatedUser,
   authorizeRoles("admin"),
   getSingleContact
 );
 
 router.delete(
-  "/contact/:id",
+  "/single-contact/:id",
   isAuthenticatedUser,
   authorizeRoles("admin"),
-  deleteBlog
+  deleteContact
 );
 
 module.exports = router;

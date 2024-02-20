@@ -28,10 +28,7 @@ const authorizeRoles = (...roles) => {
     if (user) {
       if (!roles.includes(user.role)) {
         return next(
-          new ErrorHandler(
-            `Role: ${req.query.role} is not allowed to access this resource`,
-            403
-          )
+          new ErrorHandler(`You are not allowed to access this resource`, 403)
         );
       }
     }

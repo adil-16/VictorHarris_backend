@@ -8,12 +8,14 @@ const postBlog = async (req, res, next) => {
   try {
     const author = req.user.id;
     const blogData = {
+      tags: [...req.body.tags],
       ...req.body,
       author,
     };
     await Blog.create(blogData);
     res.status(200).json({
       success: true,
+      message: "Blog Posted Successfully",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
@@ -24,9 +26,15 @@ const getSingleBlog = async (req, res, next) => {
   try {
     const { id } = req.params;
     const blog = await Blog.findById(id);
-    res.status(200).json({
-      success: true,
-      blog,
+    if (blog) {
+      res.status(200).json({
+        success: true,
+        blog,
+      });
+    }
+    res.status(404).json({
+      success: false,
+      message: "Blog Not Found",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
@@ -48,17 +56,11 @@ const getBlogs = async (req, res, next) => {
 const deleteBlog = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const blog = await Blog.findById(id);
-    if (req.user.id === blog.user._id) {
-      const blog = await Blog.findByIdAndDelete(id);
-      res.status(200).json({
-        success: true,
-      });
-    } else {
-      res.status(400).json({
-        message: "Not Allowed",
-      });
-    }
+    const blog = await Blog.findByIdAndDelete(id);
+    res.status(200).json({
+      success: true,
+      message: "Blog Deleted Successfully",
+    });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
   }
@@ -77,6 +79,7 @@ const updateBlog = async (req, res, next) => {
     });
     res.status(200).json({
       success: true,
+      message: "Blog Updated Successfully",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
