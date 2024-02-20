@@ -19,15 +19,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   session({
-    secret: "ThisIsASecretKey",
+    secret: process.env.SESSION_KEY,
     resave: false,
     saveUninitialized: true,
   })
 );
 
 const user = require("./routes/userRoute");
+const blog = require("./routes/blogRoute");
+const contact = require("./routes/contactRoute");
 
 app.use("/api/v1", user);
+app.use("/api/v1/blog", blog);
+app.use("/api/v1/contact", contact);
 
 app.use(errorMiddleware);
 

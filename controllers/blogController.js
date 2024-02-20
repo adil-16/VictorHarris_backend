@@ -2,7 +2,7 @@ const ErrorHandler = require("../utils/errorHandler");
 
 const Blog = require("../models/blogModel");
 
-const BlogComment = require("../models/blogCommentModel");
+// const BlogComment = require("../models/blogCommentModel");
 
 const postBlog = async (req, res, next) => {
   try {
@@ -14,18 +14,6 @@ const postBlog = async (req, res, next) => {
     await Blog.create(blogData);
     res.status(200).json({
       success: true,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 404));
-  }
-};
-
-const getPersonalBlogs = async (req, res, next) => {
-  try {
-    const blogs = await Blog.findById(req.user.id);
-    res.status(200).json({
-      success: true,
-      blogs,
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 404));
@@ -45,7 +33,7 @@ const getSingleBlog = async (req, res, next) => {
   }
 };
 
-const getAllBlogs = async (req, res, next) => {
+const getBlogs = async (req, res, next) => {
   try {
     const blog = await Blog.find();
     res.status(200).json({
@@ -95,55 +83,39 @@ const updateBlog = async (req, res, next) => {
   }
 };
 
-const deleteAdminBlog = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const blog = await Blog.findByIdAndDelete(id);
-    res.status(200).json({
-      success: true,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 404));
-  }
-};
+// const postBlogComment = async (req, res, next) => {
+//   try {
+//     const { blog } = req.params;
+//     const data = {
+//       ...req.bod,
+//       blog,
+//     };
+//     await BlogComment.create(data);
+//     res.status(200).json({
+//       success: true,
+//     });
+//   } catch (error) {
+//     return next(new ErrorHandler(error.message, 404));
+//   }
+// };
 
-const postBlogComment = async (req, res, next) => {
-  try {
-    const { blog } = req.params;
-    const data = {
-      ...req.bod,
-      blog,
-    };
-    await BlogComment.create(data);
-    res.status(200).json({
-      success: true,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 404));
-  }
-};
-
-const getBlogComments = async (req, res, next) => {
-  try {
-    const { blog } = req.params;
-    const blogComments = await BlogComment.find({ blog });
-    res.status(200).json({
-      success: true,
-      blogComments,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 404));
-  }
-};
+// const getBlogComments = async (req, res, next) => {
+//   try {
+//     const { blog } = req.params;
+//     const blogComments = await BlogComment.find({ blog });
+//     res.status(200).json({
+//       success: true,
+//       blogComments,
+//     });
+//   } catch (error) {
+//     return next(new ErrorHandler(error.message, 404));
+//   }
+// };
 
 module.exports = {
   postBlog,
-  getPersonalBlogs,
   getSingleBlog,
-  getAllBlogs,
+  getBlogs,
   deleteBlog,
   updateBlog,
-  deleteAdminBlog,
-  getBlogComments,
-  postBlogComment,
 };
