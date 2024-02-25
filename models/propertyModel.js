@@ -12,7 +12,8 @@ const propertySchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: "",
+      default:
+        "https://www.useourfacilities.com/css/images/no-image-template.png",
     },
     address: {
       referenceNumber: Number,
@@ -72,6 +73,11 @@ const propertySchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "PropertyAmenity" },
     ],
     office: { type: mongoose.Schema.Types.ObjectId, ref: "PropertyOffice" },
+    facts: { type: mongoose.Schema.Types.ObjectId, ref: "PropertyFacts" },
+    offer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PropertySpecialOffer",
+    },
     transport: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "PropertyTransport",

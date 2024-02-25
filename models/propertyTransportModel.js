@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const transportSchema = new mongoose.Schema(
   {
-    propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
     distance: Number,
     routeType: {
       type: String,

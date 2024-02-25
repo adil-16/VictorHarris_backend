@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const factSchema = new mongoose.Schema(
+const offerSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -18,4 +18,4 @@ const factSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Facts", factSchema);
+module.exports = mongoose.model("PropertySpecialOffer", offerSchema);

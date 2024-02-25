@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const officeSchema = new mongoose.Schema(
   {
-    propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
     title: String,
     label: String,
     price: Number,
