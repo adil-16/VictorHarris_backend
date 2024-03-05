@@ -65,9 +65,11 @@ const registerUser = async (req, res, next) => {
       phone,
       otp,
     };
+    console.log(req.session.user);
 
     res.status(200).json({ message: "OTP sent to your email, please verify" });
   } catch (error) {
+    console.log(error);
     console.log(error);
     return next(new ErrorHandler(error.message, 400));
   }
@@ -90,6 +92,7 @@ const verifyOTP = async (req, res, next) => {
       return next(new ErrorHandler("Invalid OTP", 400));
     }
   } catch (error) {
+    console.log(error);
     return next(new ErrorHandler(error.message, 400));
   }
 };
