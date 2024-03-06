@@ -1,15 +1,48 @@
+const path = require("path");
+
 const ErrorHandler = require("../utils/errorHandler");
 
 const ContactUs = require("../models/contactUsModel");
 
+const renderEmailTemplate = require("../utils/emailTemplate");
+
+const sendEmail = require("../utils/sendEmail");
+
 const postContact = async (req, res, next) => {
   try {
-    await ContactUs.create(req.body);
+    const { name, message } = req.body;
+    const contactEmail = req.body.email;
+    await ContactUs.create({ name, message, contactEmail });
+    const userMessage = {
+      message: req.body.message,
+    };
+
+    const templatePath = path.join(
+      __dirname,
+      "..",
+      "public",
+      "views",
+      "templates",
+      "messageReceivedTemplate.html"
+    );
+    const emailContent = renderEmailTemplate(templatePath, userMessage);
+
+    try {
+      await sendEmail({
+        email: req.body.email,
+        subject: "We Have Received Your Message!",
+        html: emailContent,
+      });
+    } catch (error) {
+      console.log(error);
+      return next(new ErrorHandler(error.message, 500));
+    }
     res.status(200).json({
       success: true,
       message: "You will get a response shortly",
     });
   } catch (error) {
+    console.log(error);
     return next(new ErrorHandler(error.message, 404));
   }
 };

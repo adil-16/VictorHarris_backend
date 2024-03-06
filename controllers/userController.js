@@ -277,7 +277,7 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const resetPasswordToken = req.params.token;
+    const resetPasswordToken = req.params.resetId;
 
     const user = await User.findOne({
       resetPasswordToken,
@@ -287,9 +287,7 @@ const resetPassword = async (req, res, next) => {
     if (!user) {
       return next(new ErrorHandler("Token expired or invalid", 400));
     }
-    if (req.body.password !== req.body.confirmPassword) {
-      return next(new ErrorHandler("Password Does not Match", 400));
-    }
+
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;

@@ -15,10 +15,10 @@ const contactUsSchema = new mongoose.Schema(
       maxLength: [300, "Message cannot be this much long"],
       minLength: [2, "Last Name should be At-least 2 characters"],
     },
-    email: {
+    contactEmail: {
       type: String,
       required: [true, "Please Enter Your Email"],
-      unique: true,
+      unique: false,
       validate: [validator.isEmail, "Please Enter A Valid Email"],
     },
   },
