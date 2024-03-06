@@ -21,7 +21,9 @@ const nodeCache = new NodeCache();
 
 const registerUser = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { email } = req.body;
+
+    console.log(email);
 
     const emailAlreadyPresent = await User.findOne({ email });
 
@@ -57,17 +59,9 @@ const registerUser = async (req, res, next) => {
       return next(new ErrorHandler(error.message, 500));
     }
 
-    req.session.user = {
-      firstName,
-      lastName,
-      email,
-      password,
-      phone,
-      otp,
-    };
-    console.log(req.session.user);
-
-    res.status(200).json({ message: "OTP sent to your email, please verify" });
+    res
+      .status(200)
+      .json({ message: "OTP sent to your email, please verify", otp });
   } catch (error) {
     console.log(error);
     console.log(error);
@@ -77,12 +71,11 @@ const registerUser = async (req, res, next) => {
 
 const verifyOTP = async (req, res, next) => {
   try {
-    const { otp } = req.body;
-    const { user } = req.session;
-    console.log(otp);
-    console.log(user);
+    console.log(req.body.user);
 
-    if (user && otp === user.otp) {
+    const { user } = req.body;
+
+    if (user) {
       const newUser = await User.create(user);
       nodeCache.del("profile");
       nodeCache.del("users");

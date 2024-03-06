@@ -5,7 +5,7 @@ const sendToken = async (user, statusCode, res) => {
 
   res.status(statusCode).json({
     success: true,
-    message: "Welcome Back",
+    message: "Welcome To Victor Harris",
     user,
     token,
   });
